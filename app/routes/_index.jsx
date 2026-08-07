@@ -3,6 +3,8 @@ import {Suspense} from 'react';
 import {Image} from '@shopify/hydrogen';
 import {ProductItem} from '~/components/ProductItem';
 import {MockShopNotice} from '~/components/MockShopNotice';
+import {HeroSection} from '~/components/HeroSection';
+import {BenefitsSection} from '~/components/BenefitsSection';
 
 /**
  * @type {Route.MetaFunction}
@@ -66,6 +68,8 @@ export default function Homepage() {
   const data = useLoaderData();
   return (
     <div className="home">
+      <HeroSection />
+      <BenefitsSection />
       {data.isShopLinked ? null : <MockShopNotice />}
       <FeaturedCollection collection={data.featuredCollection} />
       <RecommendedProducts products={data.recommendedProducts} />

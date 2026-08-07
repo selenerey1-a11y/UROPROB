@@ -6,6 +6,10 @@
   --header-height: 64px;
   --color-dark: #000;
   --color-light: #fff;
+  --color-primary: #E85D75;
+  --color-primary-dark: #C94A61;
+  --color-bg-soft: #FDF3F0;
+  --color-accent-dark: #2B2B2B;
 }
 
 img {
