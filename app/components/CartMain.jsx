@@ -7,7 +7,7 @@ import {CartSummary} from './CartSummary';
 /**
  * Returns a map of all line items and their children.
  * @param {CartLine[]} lines
- * @return {import("D:/Usuario/Escritorio/UROPROB/uroprob/app/components/CartMain").LineItemChildrenMap}
+ * @return {LineItemChildrenMap}
  */
 function getLineItemChildrenMap(lines) {
   const children = {};
