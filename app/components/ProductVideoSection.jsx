@@ -36,31 +36,39 @@ const VIDEOS = [
   },
 ];
 
-// A clone of the last video up front and a clone of the first video at the
-// end — the classic infinite-carousel trick. Sliding past either end lands
-// on a slide that looks identical to the real one it's replacing, so once
-// every video has played we can snap back to the matching real slide
-// without animating and no one sees the jump: the loop just keeps going.
-const SLIDES = [VIDEOS[VIDEOS.length - 1], ...VIDEOS, VIDEOS[0]];
-const FIRST_REAL_INDEX = 1;
-const LAST_REAL_INDEX = VIDEOS.length;
+// The list is laid out three times in a row and we always sit in the middle
+// copy. A single clone per end isn't enough: the viewport shows several cards
+// at once, so landing on the last slide would leave the remaining slots empty.
+// With a whole copy either side there is always a full screen of videos ahead
+// and behind, and because the copies are identical we can jump a full LOOP
+// back to the middle without animating and the loop looks seamless.
+const LOOP = VIDEOS.length;
+const SLIDES = [...VIDEOS, ...VIDEOS, ...VIDEOS];
+
+// Widest the viewport ever gets (1200px minus arrows) divided by a card plus
+// its gap — the number of slides that must always exist ahead of the index.
+const VISIBLE_SLOTS = 6;
 
 const AUTO_ADVANCE_MS = 4000;
 const TRANSITION_MS = 350;
 
 export function ProductVideoSection() {
-  const [index, setIndex] = useState(FIRST_REAL_INDEX);
+  const [index, setIndex] = useState(LOOP);
   const [instant, setInstant] = useState(false);
   const timerRef = useRef(null);
+  const trackRef = useRef(null);
 
+  // Both guards ignore input while a snap is still pending, keeping the index
+  // inside [LOOP - 1, 2 * LOOP] so there are never fewer than VISIBLE_SLOTS
+  // slides left to render.
   function goPrev() {
     setInstant(false);
-    setIndex((i) => i - 1);
+    setIndex((i) => (i < LOOP ? i : i - 1));
   }
 
   function goNext() {
     setInstant(false);
-    setIndex((i) => i + 1);
+    setIndex((i) => (i >= 2 * LOOP ? i : i + 1));
   }
 
   // Carousel advances on its own; clicking an arrow just restarts the timer
@@ -70,23 +78,40 @@ export function ProductVideoSection() {
     return () => clearInterval(timerRef.current);
   }, [index]);
 
-  // After sliding onto one of the cloned end slides, wait for that slide
-  // the finish animating in, then snap (no transition) to the matching real
-  // slide on the other side of the loop.
+  // Once the index leaves the middle copy, let the slide finish animating and
+  // then jump a whole LOOP back into it with no transition. The slide landed
+  // on and every slide around it are the same clips, so nothing visibly moves.
   useEffect(() => {
-    if (index === SLIDES.length - 1) {
+    if (index >= 2 * LOOP) {
       const t = setTimeout(() => {
         setInstant(true);
-        setIndex(FIRST_REAL_INDEX);
+        setIndex((i) => i - LOOP);
       }, TRANSITION_MS);
       return () => clearTimeout(t);
     }
-    if (index === 0) {
+    if (index < LOOP) {
       const t = setTimeout(() => {
         setInstant(true);
-        setIndex(LAST_REAL_INDEX);
+        setIndex((i) => i + LOOP);
       }, TRANSITION_MS);
       return () => clearTimeout(t);
+    }
+  }, [index]);
+
+  // Tripling the slides would otherwise triple the number of clips decoding at
+  // once, so only the ones in (or just off) the viewport actually play.
+  useEffect(() => {
+    const cards = trackRef.current?.children ?? [];
+    for (let i = 0; i < cards.length; i++) {
+      const media = cards[i].querySelector('video');
+      if (!media) continue;
+      if (i >= index - 1 && i <= index + VISIBLE_SLOTS) {
+        // Autoplay can still be refused (low power mode, for one); a paused
+        // card is a far better outcome than an unhandled rejection.
+        media.play().catch(() => {});
+      } else if (!media.paused) {
+        media.pause();
+      }
     }
   }, [index]);
 
@@ -116,6 +141,7 @@ export function ProductVideoSection() {
 
         <div className="video-carousel-viewport">
           <div
+            ref={trackRef}
             className={`video-carousel-track${instant ? ' is-jumping' : ''}`}
             style={{
               transform: `translateX(calc(-${index} * (var(--video-card-w) + var(--video-gap))))`,
@@ -143,13 +169,15 @@ export function ProductVideoSection() {
 function VideoCard({video}) {
   return (
     <div className="video-carousel-card">
+      {/* No `autoPlay`: the carousel starts and stops each clip itself so only
+          the visible ones are decoding. `muted` is what makes that allowed. */}
       <video
         className="video-carousel-media"
         src={video.src}
-        autoPlay
         loop
         muted
         playsInline
+        preload="metadata"
       />
       <div className="video-carousel-caption">
         <span className="video-carousel-name">-{video.name}</span>
