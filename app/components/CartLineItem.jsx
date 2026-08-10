@@ -1,12 +1,12 @@
-import {CartForm, Image} from '@shopify/hydrogen';
+import {CartForm, Image, Money} from '@shopify/hydrogen';
 import {useVariantUrl} from '~/lib/variants';
+import {planDeliveryLabel} from '~/lib/sellingPlan';
 import {Link} from 'react-router';
-import {ProductPrice} from './ProductPrice';
 import {useAside} from './Aside';
 
 /**
- * A single line item in the cart. It displays the product image, title, price.
- * It also provides controls to update the quantity or remove the line item.
+ * A single line item in the cart, styled as a card: image, title, purchase
+ * type (one-time vs subscription), a quantity stepper, and the line price.
  * If the line is a parent line that has child components (like warranties or gift wrapping), they are
  * rendered nested below the parent line.
  * @param {{
@@ -16,12 +16,15 @@ import {useAside} from './Aside';
  * }}
  */
 export function CartLineItem({layout, line, childrenMap}) {
-  const {id, merchandise} = line;
+  const {id, merchandise, sellingPlanAllocation} = line;
   const {product, title, image, selectedOptions} = merchandise;
   const lineItemUrl = useVariantUrl(product.handle, selectedOptions);
   const {close} = useAside();
   const lineItemChildren = childrenMap[id];
   const childrenLabelId = `cart-line-children-${id}`;
+  const purchaseTypeLabel = sellingPlanAllocation?.sellingPlan
+    ? `Suscripción — ${planDeliveryLabel(sellingPlanAllocation.sellingPlan)}`
+    : 'Compra única';
 
   return (
     <li key={id} className="cart-line">
@@ -37,8 +40,9 @@ export function CartLineItem({layout, line, childrenMap}) {
           />
         )}
 
-        <div>
+        <div className="cart-line-body">
           <Link
+            className="cart-line-title"
             prefetch="intent"
             to={lineItemUrl}
             onClick={() => {
@@ -47,21 +51,34 @@ export function CartLineItem({layout, line, childrenMap}) {
               }
             }}
           >
-            <p>
-              <strong>{product.title}</strong>
-            </p>
+            <strong>{product.title}</strong>
           </Link>
-          <ProductPrice price={line?.cost?.totalAmount} />
-          <ul>
-            {selectedOptions.map((option) => (
-              <li key={option.name}>
-                <small>
-                  {option.name}: {option.value}
-                </small>
-              </li>
-            ))}
-          </ul>
-          <CartLineQuantity line={line} />
+          <p className="cart-line-purchase-type">{purchaseTypeLabel}</p>
+          {selectedOptions.some((option) => option.value !== 'Default Title') ? (
+            <ul className="cart-line-options">
+              {selectedOptions.map((option) => (
+                <li key={option.name}>
+                  <small>
+                    {option.name}: {option.value}
+                  </small>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          <div className="cart-line-footer">
+            <CartLineQuantity line={line} />
+            <div className="cart-line-end">
+              <span className="cart-line-price">
+                {line?.cost?.totalAmount ? (
+                  <Money data={line.cost.totalAmount} />
+                ) : null}
+              </span>
+              <CartLineRemoveButton
+                lineIds={[id]}
+                disabled={!!line.isOptimistic}
+              />
+            </div>
+          </div>
         </div>
       </div>
 
@@ -100,30 +117,29 @@ function CartLineQuantity({line}) {
 
   return (
     <div className="cart-line-quantity">
-      <small>Quantity: {quantity} &nbsp;&nbsp;</small>
       <CartLineUpdateButton lines={[{id: lineId, quantity: prevQuantity}]}>
         <button
-          aria-label="Decrease quantity"
+          className="cart-line-quantity-btn"
+          aria-label="Reducir cantidad"
           disabled={quantity <= 1 || !!isOptimistic}
           name="decrease-quantity"
           value={prevQuantity}
         >
-          <span>&#8722; </span>
+          &#8722;
         </button>
       </CartLineUpdateButton>
-      &nbsp;
+      <span className="cart-line-quantity-value">{quantity}</span>
       <CartLineUpdateButton lines={[{id: lineId, quantity: nextQuantity}]}>
         <button
-          aria-label="Increase quantity"
+          className="cart-line-quantity-btn"
+          aria-label="Aumentar cantidad"
           name="increase-quantity"
           value={nextQuantity}
           disabled={!!isOptimistic}
         >
-          <span>&#43;</span>
+          &#43;
         </button>
       </CartLineUpdateButton>
-      &nbsp;
-      <CartLineRemoveButton lineIds={[lineId]} disabled={!!isOptimistic} />
     </div>
   );
 }
@@ -145,8 +161,8 @@ function CartLineRemoveButton({lineIds, disabled}) {
       action={CartForm.ACTIONS.LinesRemove}
       inputs={{lineIds}}
     >
-      <button disabled={disabled} type="submit">
-        Remove
+      <button className="cart-line-remove" disabled={disabled} type="submit">
+        Eliminar
       </button>
     </CartForm>
   );

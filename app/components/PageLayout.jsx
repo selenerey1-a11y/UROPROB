@@ -1,6 +1,7 @@
 import {Await, Link} from 'react-router';
 import {Suspense, useId} from 'react';
 import {Aside} from '~/components/Aside';
+import {AnnouncementBar} from '~/components/AnnouncementBar';
 import {Footer} from '~/components/Footer';
 import {Header, HeaderMenu} from '~/components/Header';
 import {CartMain} from '~/components/CartMain';
@@ -34,6 +35,7 @@ export function PageLayout({
           publicStoreDomain={publicStoreDomain}
         />
       )}
+      <AnnouncementBar />
       <main>{children}</main>
       <Footer
         footer={footer}
@@ -49,7 +51,7 @@ export function PageLayout({
  */
 function CartAside({cart}) {
   return (
-    <Aside type="cart" heading="CART">
+    <Aside type="cart" heading="CARRITO">
       <Suspense fallback={<p>Loading cart ...</p>}>
         <Await resolve={cart}>
           {(cart) => {

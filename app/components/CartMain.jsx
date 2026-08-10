@@ -2,6 +2,7 @@ import {useOptimisticCart} from '@shopify/hydrogen';
 import {Link} from 'react-router';
 import {useAside} from '~/components/Aside';
 import {CartLineItem} from '~/components/CartLineItem';
+import {CartFreeShipping} from '~/components/CartFreeShipping';
 import {CartSummary} from './CartSummary';
 /**
  * Returns a map of all line items and their children.
@@ -50,11 +51,13 @@ export function CartMain({layout, cart: originalCart}) {
       aria-label={layout === 'page' ? 'Cart page' : 'Cart drawer'}
     >
       <CartEmpty hidden={linesCount} layout={layout} />
+      {cartHasItems && <CartFreeShipping subtotal={cart?.cost?.subtotalAmount} />}
       <div className="cart-details">
+        {cartHasItems && <h4 className="cart-details-heading">Tu carrito:</h4>}
         <p id="cart-lines" className="sr-only">
           Line items
         </p>
-        <div>
+        <div className="cart-lines-wrap">
           <ul aria-labelledby="cart-lines">
             {(cart?.lines?.nodes ?? []).map((line) => {
               // we do not render non-parent lines at the root of the cart
@@ -92,13 +95,10 @@ function CartEmpty({hidden = false}) {
   return (
     <div hidden={hidden}>
       <br />
-      <p>
-        Looks like you haven&rsquo;t added anything yet, let&rsquo;s get you
-        started!
-      </p>
+      <p>Parece que todavía no has añadido nada. ¡Vamos a cambiar eso!</p>
       <br />
       <Link to="/collections" onClick={close} prefetch="viewport">
-        Continue shopping →
+        Seguir comprando →
       </Link>
     </div>
   );

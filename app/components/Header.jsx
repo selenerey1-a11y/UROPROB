@@ -2,23 +2,21 @@ import {Suspense} from 'react';
 import {Await, NavLink, useAsyncValue} from 'react-router';
 import {useAnalytics, useOptimisticCart} from '@shopify/hydrogen';
 import {useAside} from '~/components/Aside';
+import logo from '~/assets/logo.png';
 
 /**
  * @param {HeaderProps}
  */
-export function Header({header, isLoggedIn, cart, publicStoreDomain}) {
-  const {shop, menu} = header;
+export function Header({header, isLoggedIn, cart}) {
+  const {shop} = header;
   return (
     <header className="header">
-      <NavLink prefetch="intent" to="/" style={activeLinkStyle} end>
-        <strong>{shop.name}</strong>
+      <div className="header-left">
+        <HeaderMenuMobileToggle />
+      </div>
+      <NavLink prefetch="intent" to="/" end className="header-logo">
+        <img src={logo} alt={shop.name} className="header-logo-img" />
       </NavLink>
-      <HeaderMenu
-        menu={menu}
-        viewport="desktop"
-        primaryDomainUrl={header.shop.primaryDomain.url}
-        publicStoreDomain={publicStoreDomain}
-      />
       <HeaderCtas isLoggedIn={isLoggedIn} cart={cart} />
     </header>
   );
@@ -41,20 +39,19 @@ export function HeaderMenu({
   const className = `header-menu-${viewport}`;
   const {close} = useAside();
 
+  // Drop the "Catalog" entry (there's no catalog page worth linking to yet)
+  // and add a direct link to the UROPROB product instead of a generic one.
+  const items = (menu || FALLBACK_HEADER_MENU).items
+    .filter((item) => item.title?.toLowerCase() !== 'catalog')
+    .concat({
+      id: 'uroprob-product-link',
+      title: 'UROPROB',
+      url: '/products/uroprob',
+    });
+
   return (
     <nav className={className} role="navigation">
-      {viewport === 'mobile' && (
-        <NavLink
-          end
-          onClick={close}
-          prefetch="intent"
-          style={activeLinkStyle}
-          to="/"
-        >
-          Home
-        </NavLink>
-      )}
-      {(menu || FALLBACK_HEADER_MENU).items.map((item) => {
+      {items.map((item) => {
         if (!item.url) return null;
 
         // if the url is internal, we strip the domain
@@ -88,15 +85,19 @@ export function HeaderMenu({
 function HeaderCtas({isLoggedIn, cart}) {
   return (
     <nav className="header-ctas" role="navigation">
-      <HeaderMenuMobileToggle />
-      <NavLink prefetch="intent" to="/account" style={activeLinkStyle}>
-        <Suspense fallback="Sign in">
-          <Await resolve={isLoggedIn} errorElement="Sign in">
-            {(isLoggedIn) => (isLoggedIn ? 'Account' : 'Sign in')}
+      <NavLink
+        prefetch="intent"
+        to="/account"
+        style={activeLinkStyle}
+        className="header-icon-btn"
+        aria-label="Account"
+      >
+        <Suspense fallback={<AccountIcon />}>
+          <Await resolve={isLoggedIn} errorElement={<AccountIcon />}>
+            {() => <AccountIcon />}
           </Await>
         </Suspense>
       </NavLink>
-      <SearchToggle />
       <CartToggle cart={cart} />
     </nav>
   );
@@ -105,20 +106,9 @@ function HeaderCtas({isLoggedIn, cart}) {
 function HeaderMenuMobileToggle() {
   const {open} = useAside();
   return (
-    <button
-      className="header-menu-mobile-toggle reset"
-      onClick={() => open('mobile')}
-    >
-      <h3>☰</h3>
-    </button>
-  );
-}
-
-function SearchToggle() {
-  const {open} = useAside();
-  return (
-    <button className="reset" onClick={() => open('search')}>
-      Search
+    <button className="header-menu-toggle reset" onClick={() => open('mobile')}>
+      <MenuIcon />
+      <span>Menu</span>
     </button>
   );
 }
@@ -133,6 +123,8 @@ function CartBadge({count}) {
   return (
     <a
       href="/cart"
+      className="header-icon-btn cart-icon-btn"
+      aria-label={`Cart (${count} items)`}
       onClick={(e) => {
         e.preventDefault();
         open('cart');
@@ -144,8 +136,35 @@ function CartBadge({count}) {
         });
       }}
     >
-      Cart <span aria-label={`(items: ${count})`}>{count}</span>
+      <BagIcon />
+      <span className="cart-count-badge">{count}</span>
     </a>
+  );
+}
+
+function MenuIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function AccountIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="1.7" />
+      <path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function BagIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M6 8h12l-1 12H7L6 8Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
+      <path d="M9 8V6a3 3 0 0 1 6 0v2" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+    </svg>
   );
 }
 

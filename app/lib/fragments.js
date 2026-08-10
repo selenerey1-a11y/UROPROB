@@ -54,6 +54,17 @@ export const CART_QUERY_FRAGMENT = `#graphql
         }
       }
     }
+    sellingPlanAllocation {
+      sellingPlan {
+        name
+        deliveryPolicy {
+          ... on SellingPlanRecurringDeliveryPolicy {
+            interval
+            intervalCount
+          }
+        }
+      }
+    }
     parentRelationship {
       parent {
         id
@@ -106,6 +117,17 @@ export const CART_QUERY_FRAGMENT = `#graphql
         selectedOptions {
           name
           value
+        }
+      }
+    }
+    sellingPlanAllocation {
+      sellingPlan {
+        name
+        deliveryPolicy {
+          ... on SellingPlanRecurringDeliveryPolicy {
+            interval
+            intervalCount
+          }
         }
       }
     }
