@@ -8,10 +8,11 @@ import {REVIEWS, getReviewStats} from '~/lib/placeholderReviews';
 
 const reviewStats = getReviewStats(REVIEWS);
 
-// Flat bundle pricing per quantity tier — the *total* the customer pays
-// for that many bottles, not a per-unit price. These numbers only hold at
-// checkout once matching automatic discounts exist in Shopify to bring
-// the real cart total down to them (see chat for the exact setup).
+// Flat bundle pricing per quantity tier — the *total* the customer pays for
+// that many bottles, not a per-unit price. Verified against real carts on
+// 2026-08-10: Shopify already rings up 29,99 / 39,99 / 49,99 for one, two and
+// three bottles, so these match checkout exactly. Change one here and the
+// matching automatic discount in Shopify has to move with it.
 const QUANTITY_TILES = [
   {units: 1, price: '29.99', ribbon: null},
   {units: 2, price: '39.99', ribbon: 'RECOMENDADO'},
@@ -28,12 +29,11 @@ function unitsLabel(units) {
  * one-time purchase choice (available for every quantity tier), an
  * installments hint, and the add-to-cart action with the live total.
  *
- * Subscription pricing/percentages come straight from the product's real
+ * Subscription pricing comes straight from the product's real
  * sellingPlanGroups/sellingPlanAllocations — nothing is fabricated there;
  * the same monthly plan applies no matter how many bottles are selected.
- * The 2/3-bottle tier prices are cosmetic on the frontend: they only match
- * the real cart total once matching automatic discounts exist in Shopify
- * (see chat for the exact setup).
+ * Every total shown here was checked against a real cart and matches what
+ * checkout charges; if you touch the pricing maths, check it again.
  * @param {{
  *   product: ProductFragment;
  *   productOptions: MappedProductOptions[];
@@ -78,21 +78,21 @@ export function ProductPurchasePanel({product, productOptions, selectedVariant})
   const oneTimeTotal = Number(tile.price);
   const oneTimeUnitPrice = oneTimeTotal / tile.units;
 
-  // The real selling plan only carries one flat per-bottle discount — the
-  // same no matter how many bottles are in the order — so it never gets
-  // cheaper per bottle on its own when the quantity tile changes. Layer the
-  // bundle tier's own per-bottle savings (the same ones the one-time price
-  // already uses) on top of it, so subscribing to more bottles still gets
-  // cheaper per bottle too. Cosmetic like the rest of the bundle math —
-  // needs matching real per-tier subscription pricing in Shopify to hold
-  // at checkout (see chat for the exact setup).
+  // The selling plan takes a fixed amount off each bottle (3,00 € at the time
+  // of writing), not a percentage, and Shopify charges that same amount per
+  // unit whatever the bundle is: 39,99 - 6,00 = 33,99 for two bottles. So the
+  // saving has to be *subtracted* per unit here too. Scaling the bundle price
+  // by a ratio instead (39,99 x 0,9 = 35,99) overcharges on screen relative to
+  // what the cart really rings up, and the gap grows with the quantity.
   const subscriptionUnitPrice = selectedAllocation?.priceAdjustments[0]?.price;
-  const subscriptionDiscountFactor = subscriptionUnitPrice
-    ? Number(subscriptionUnitPrice.amount) / regularUnitPrice
+  const subscriptionUnitDiscount = subscriptionUnitPrice
+    ? Number(
+        subscriptionUnitCompareAtPrice?.amount ?? regularUnitPrice,
+      ) - Number(subscriptionUnitPrice.amount)
     : null;
   const subscriptionUnitPriceForTile =
-    subscriptionDiscountFactor != null
-      ? oneTimeUnitPrice * subscriptionDiscountFactor
+    subscriptionUnitDiscount != null
+      ? Math.max(oneTimeUnitPrice - subscriptionUnitDiscount, 0)
       : null;
   const subscriptionTotal =
     subscriptionUnitPriceForTile != null
@@ -200,11 +200,12 @@ export function ProductPurchasePanel({product, productOptions, selectedVariant})
               <span className="purchase-type-option-price">
                 {subscriptionUnitCompareAtPrice ? (
                   <s>
-                    <Money data={subscriptionUnitCompareAtPrice} />
+                    <Money as="span" data={subscriptionUnitCompareAtPrice} />
                   </s>
                 ) : null}
                 {subscriptionUnitPriceForTile != null ? (
                   <Money
+                    as="span"
                     data={{
                       amount: subscriptionUnitPriceForTile.toFixed(2),
                       currencyCode,
@@ -246,9 +247,13 @@ export function ProductPurchasePanel({product, productOptions, selectedVariant})
               <span className="purchase-type-option-name">Compra única</span>
               <span className="purchase-type-option-price">
                 <s>
-                  <Money data={{amount: String(regularUnitPrice), currencyCode}} />
+                  <Money
+                    as="span"
+                    data={{amount: String(regularUnitPrice), currencyCode}}
+                  />
                 </s>
                 <Money
+                  as="span"
                   data={{amount: oneTimeUnitPrice.toFixed(2), currencyCode}}
                 />
                 <span className="purchase-type-option-unit">/bote</span>

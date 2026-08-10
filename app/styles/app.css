@@ -1,7 +1,5 @@
 :root {
   --aside-width: 400px;
-  --cart-aside-summary-height-with-discount: 300px;
-  --cart-aside-summary-height: 250px;
   --grid-item-width: 355px;
   --header-height: 72px;
   --color-dark: #000;
@@ -97,7 +95,10 @@ img {
 aside {
   background: var(--color-light);
   box-shadow: 0 0 50px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
   height: 100vh;
+  height: 100dvh;
   width: min(var(--aside-width), 100vw);
   position: fixed;
   right: calc(-1 * var(--aside-width));
@@ -109,6 +110,7 @@ aside header {
   align-items: center;
   border-bottom: 1px solid var(--color-dark);
   display: flex;
+  flex-shrink: 0;
   height: var(--header-height);
   justify-content: space-between;
   padding: 0 20px;
@@ -136,7 +138,10 @@ aside header h2 {
 }
 
 aside main {
+  flex: 1;
   margin: 1rem;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 aside p {
@@ -535,15 +540,20 @@ button.reset:hover:not(:has(> *)) {
 * components/Cart
 * --------------------------------------------------
 */
+/* Column layout: the free-shipping bar, the lines and the summary all live in
+   normal flow so nothing can overlap the products. The drawer's <main> is the
+   single scroll container. */
 .cart-main {
-  height: 100%;
-  max-height: calc(100vh - var(--cart-aside-summary-height));
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
   width: auto;
 }
 
-.cart-main.with-discount {
-  max-height: calc(100vh - var(--cart-aside-summary-height-with-discount));
+.cart-details {
+  display: flex;
+  flex: 1 0 auto;
+  flex-direction: column;
 }
 
 .cart-lines-wrap {
@@ -563,34 +573,184 @@ button.reset:hover:not(:has(> *)) {
 * --------------------------------------------------
 */
 .cart-free-shipping {
-  padding: 1rem 1.25rem 0;
+  --cart-shipping-progress: 0%;
+  background: linear-gradient(135deg, var(--color-bg-soft) 0%, #fff 65%);
+  border: 1px solid rgba(163, 30, 52, 0.1);
+  border-radius: 1rem;
+  box-shadow: 0 2px 10px rgba(163, 30, 52, 0.06);
+  flex-shrink: 0;
+  margin: 1rem 1.25rem 0;
+  padding: 0.9rem 1rem;
+}
+
+.cart-free-shipping-head {
+  align-items: center;
+  display: flex;
+  gap: 0.65rem;
+  margin-bottom: 0.7rem;
+}
+
+.cart-free-shipping-icon {
+  align-items: center;
+  background: var(--color-light);
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(163, 30, 52, 0.12);
+  color: var(--color-deep-red);
+  display: flex;
+  flex-shrink: 0;
+  height: 2rem;
+  justify-content: center;
+  width: 2rem;
+}
+
+.cart-free-shipping-icon svg {
+  height: 1.15rem;
+  width: 1.15rem;
 }
 
 .cart-free-shipping-message {
   color: var(--color-accent-dark);
-  font-size: 0.85rem;
-  font-weight: 700;
-  margin: 0 0 0.5rem;
-  text-transform: uppercase;
+  font-size: 0.9rem;
+  line-height: 1.35;
+  margin: 0;
 }
 
 .cart-free-shipping-highlight {
   color: var(--color-deep-red);
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.cart-free-shipping-amount {
+  color: var(--color-deep-red);
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.cart-free-shipping-track-row {
+  align-items: center;
+  display: flex;
+  gap: 0.6rem;
 }
 
 .cart-free-shipping-bar {
-  background: #ececec;
+  background: rgba(163, 30, 52, 0.1);
   border-radius: 999px;
-  height: 6px;
-  overflow: hidden;
-  width: 100%;
+  box-shadow: inset 0 1px 2px rgba(163, 30, 52, 0.08);
+  flex: 1;
+  height: 9px;
+  position: relative;
 }
 
 .cart-free-shipping-bar-fill {
-  background: linear-gradient(90deg, var(--color-primary), var(--color-deep-red));
+  background: linear-gradient(
+    90deg,
+    var(--color-primary) 0%,
+    var(--color-primary-dark) 55%,
+    var(--color-deep-red) 100%
+  );
   border-radius: 999px;
   height: 100%;
-  transition: width 250ms ease;
+  position: relative;
+  overflow: hidden;
+  transition: width 450ms cubic-bezier(0.22, 1, 0.36, 1);
+  width: var(--cart-shipping-progress);
+}
+
+/* Light sweep travelling along the filled part. */
+.cart-free-shipping-bar-fill::after {
+  animation: cart-shipping-sweep 2.4s ease-in-out infinite;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.55) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  content: '';
+  inset: 0;
+  position: absolute;
+  transform: translateX(-100%);
+}
+
+/* Glowing head of the bar, so the progress reads as "moving". */
+.cart-free-shipping-bar::after {
+  background: var(--color-light);
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--color-deep-red), 0 0 8px rgba(163, 30, 52, 0.45);
+  content: '';
+  height: 9px;
+  /* Clamped so the dot never hangs off the rounded ends of the track. */
+  left: clamp(4.5px, var(--cart-shipping-progress), calc(100% - 4.5px));
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  transition: left 450ms cubic-bezier(0.22, 1, 0.36, 1);
+  width: 9px;
+}
+
+.cart-free-shipping-goal {
+  color: #8a8a8a;
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+/* Unlocked state */
+.cart-free-shipping.is-unlocked {
+  background: linear-gradient(135deg, #fdf1f3 0%, #fff 70%);
+  border-color: rgba(163, 30, 52, 0.22);
+}
+
+.cart-free-shipping.is-unlocked .cart-free-shipping-icon {
+  animation: cart-shipping-pop 420ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  background: var(--color-deep-red);
+  color: var(--color-light);
+}
+
+.cart-free-shipping.is-unlocked .cart-free-shipping-goal {
+  color: var(--color-deep-red);
+}
+
+.cart-free-shipping.is-unlocked .cart-free-shipping-bar::after {
+  display: none;
+}
+
+@keyframes cart-shipping-sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  60%,
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes cart-shipping-pop {
+  0% {
+    transform: scale(0.6);
+  }
+  70% {
+    transform: scale(1.12);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cart-free-shipping-bar-fill,
+  .cart-free-shipping-bar::after {
+    transition: none;
+  }
+
+  .cart-free-shipping-bar-fill::after,
+  .cart-free-shipping.is-unlocked .cart-free-shipping-icon {
+    animation: none;
+  }
+
+  .cart-free-shipping-bar-fill::after {
+    display: none;
+  }
 }
 
 /*
@@ -718,10 +878,11 @@ button.reset:hover:not(:has(> *)) {
 .cart-summary-aside {
   background: var(--color-light);
   border-top: 1px solid #ececec;
-  bottom: 0;
+  /* Sits below the lines; pushed to the bottom of the drawer when the cart is
+     short enough that everything fits without scrolling. */
+  margin-top: auto;
   padding: 1.1rem 1.25rem 1.25rem;
-  position: absolute;
-  width: calc(var(--aside-width) - 40px);
+  width: auto;
 }
 
 /* Child line components (warranties, gift wrapping, etc.) */
@@ -1837,11 +1998,14 @@ button.reset:hover:not(:has(> *)) {
 .product-top {
   display: grid;
   gap: 1.5rem;
+  /* minmax(0, …) on every track: grid tracks default to a min-content floor,
+     so any wide child would push the whole page sideways instead of shrinking. */
+  grid-template-columns: minmax(0, 1fr);
   padding: 1.25rem 1.25rem 0;
 
   @media (min-width: 45em) {
     gap: 3rem;
-    grid-template-columns: 1.1fr 1fr;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
     max-width: 1200px;
     margin-inline: auto;
     padding: 2.5rem 1.5rem 0;
@@ -2075,6 +2239,7 @@ button.reset:hover:not(:has(> *)) {
 }
 
 .purchase-type-options {
+  container: purchase-type / inline-size;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -2088,7 +2253,10 @@ button.reset:hover:not(:has(> *)) {
   column-gap: 0.75rem;
   cursor: pointer;
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  /* Narrow card: radio + text, with the price on its own row underneath.
+     minmax(0, …) keeps the text column from forcing the card — and with it
+     the whole page — wider than the screen. */
+  grid-template-columns: auto minmax(0, 1fr);
   padding: 1rem 1.1rem;
   position: relative;
   row-gap: 0.5rem;
@@ -2107,7 +2275,7 @@ button.reset:hover:not(:has(> *)) {
 .purchase-type-option-name {
   color: var(--color-accent-dark);
   font-weight: 700;
-  white-space: nowrap;
+  min-width: 0;
 }
 
 .purchase-type-option-price {
@@ -2116,8 +2284,24 @@ button.reset:hover:not(:has(> *)) {
   display: flex;
   font-weight: 800;
   gap: 0.4rem;
-  grid-column: 3;
-  grid-row: 1;
+  grid-column: 2;
+  grid-row: 2;
+  white-space: nowrap;
+}
+
+/* Card wide enough for name and price side by side. Measured against the card
+   itself, so it holds both on a phone and in the narrow desktop column.
+   Must come after the base rules above — a container query adds no
+   specificity, so source order decides. */
+@container purchase-type (min-width: 28rem) {
+  .purchase-type-option {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .purchase-type-option-price {
+    grid-column: 3;
+    grid-row: 1;
+  }
 }
 
 .purchase-type-option-price s {
@@ -2445,7 +2629,12 @@ button.reset:hover:not(:has(> *)) {
   color: var(--color-accent-dark);
   flex: 1;
   font-size: 0.9rem;
+  /* Inputs carry an intrinsic ~20-character width; min-width/width 0 drops
+     that floor so the row can shrink on very narrow phones (flex: 1 grows it
+     back to fill the available space). */
+  min-width: 0;
   padding: 0.8rem 1rem;
+  width: 0;
 }
 
 .reviews-search-input::placeholder {
@@ -2673,6 +2862,7 @@ button.reset:hover:not(:has(> *)) {
 
 .faq-tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.6rem;
   justify-content: center;
   margin: 0 auto 1.5rem;
