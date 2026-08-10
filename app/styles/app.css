@@ -2332,21 +2332,6 @@ button.reset:hover:not(:has(> *)) {
   font-size: 0.8rem;
 }
 
-.purchase-gift-banner {
-  background: color-mix(in srgb, var(--color-primary) 16%, var(--color-light));
-  border-radius: 0.65rem;
-  color: var(--color-accent-dark);
-  font-size: 0.85rem;
-  grid-column: 2 / -1;
-  padding: 0.75rem 0.9rem;
-}
-
-.purchase-gift-note {
-  color: #8a8a8a;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
 .purchase-plan-select {
   border: 1px solid #e2e2e2;
   border-radius: 0.5rem;

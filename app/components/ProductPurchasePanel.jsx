@@ -225,14 +225,6 @@ export function ProductPurchasePanel({product, productOptions, selectedVariant})
                     : `${tile.units} botes se envían cada mes`}
                 </li>
               </ul>
-
-              {/* Placeholder — swap for the real gift/promo copy and value
-                  once it's confirmed, or remove this block if there ends up
-                  being no gift-with-subscription offer. */}
-              <div className="purchase-gift-banner">
-                🎁 <strong>Regalo gratis</strong> con tu suscripción
-                <span className="purchase-gift-note"> (completar con la promo real)</span>
-              </div>
             </label>
 
             <label
