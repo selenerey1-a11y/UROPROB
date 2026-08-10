@@ -1,0 +1,4 @@
+# `shopify hydrogen codegen` writes these with LF endings. Without this,
+# core.autocrlf=true checks them out as CRLF and they show up as modified
+# on every run even though the content is identical.
+*.generated.d.ts text eol=lf
