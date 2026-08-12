@@ -18,11 +18,14 @@ export default async function handleRequest(
   context,
 ) {
   const {nonce, header, NonceProvider} = createContentSecurityPolicy({
-    shop: {
-      checkoutDomain: context.env.PUBLIC_CHECKOUT_DOMAIN,
-      storeDomain: context.env.PUBLIC_STORE_DOMAIN,
-    },
-  });
+  shop: {
+    checkoutDomain: context.env.PUBLIC_CHECKOUT_DOMAIN,
+    storeDomain: context.env.PUBLIC_STORE_DOMAIN,
+  },
+  scriptSrc: ["'self'", 'https://connect.facebook.net'],
+  connectSrc: ["'self'", 'https://connect.facebook.net', 'https://www.facebook.com'],
+  imgSrc: ["'self'", 'https://www.facebook.com'],
+});
 
   const body = await renderToReadableStream(
     <NonceProvider>
