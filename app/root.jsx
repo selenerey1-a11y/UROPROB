@@ -15,7 +15,7 @@ import resetStyles from '~/styles/reset.css?url';
 import appStyles from '~/styles/app.css?url';
 import tailwindCss from './styles/tailwind.css?url';
 import {PageLayout} from './components/PageLayout';
-
+import {useMetaPixelPageView} from '~/lib/useMetaPixelPageView';
 /**
  * This is important to avoid re-fetching root queries on sub-navigations
  * @type {ShouldRevalidateFunction}
@@ -185,6 +185,7 @@ export function Layout({children}) {
 export default function App() {
   /** @type {RootLoader} */
   const data = useRouteLoaderData('root');
+  useMetaPixelPageView();
 
   if (!data) {
     return <Outlet />;
