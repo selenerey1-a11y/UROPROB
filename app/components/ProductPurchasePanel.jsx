@@ -290,7 +290,20 @@ export function ProductPurchasePanel({product, productOptions, selectedVariant})
         disabled={!selectedVariant || !selectedVariant.availableForSale}
         onClick={() => open('cart')}
         lines={lines}
-      >
+      analytics={{
+    products: [
+      {
+        id: selectedVariant?.id,
+        title: product.title,
+        price: selectedVariant?.price?.amount,
+        vendor: product.vendor,
+        variantId: selectedVariant?.id,
+        variantTitle: selectedVariant?.title,
+        quantity: cartQuantity,
+      },
+    ],
+  }}
+>
         {selectedVariant?.availableForSale ? (
           <>
             Añadir al carrito -{' '}
