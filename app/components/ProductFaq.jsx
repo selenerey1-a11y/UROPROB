@@ -11,7 +11,7 @@ const TABS = [
       },
       {
         q: '¿Puedo tomarlo junto con otros suplementos?',
-        a: 'En general sí, pero te recomendamos consultar con tu profesional de la salud si ya tomás otros suplementos o medicación.',
+        a: 'En general sí, pero te recomendamos consultar con tu profesional de la salud si ya tomas otros suplementos o medicación.',
       },
       {
         q: '¿A partir de qué edad se puede tomar?',
@@ -19,7 +19,7 @@ const TABS = [
       },
       {
         q: '¿Cuánto tiempo tarda en notarse el efecto?',
-        a: 'Cada organismo es distinto; muchas clientas reportan notar cambios dentro de las primeras 2 a 4 semanas de uso continuo.',
+        a: 'Cada organismo es distinto; muchas clientas nos cuentan que notan cambios en las primeras 2 a 4 semanas de uso continuo.',
       },
     ],
   },
@@ -29,11 +29,11 @@ const TABS = [
     questions: [
       {
         q: '¿Cuánto tarda en llegar mi pedido?',
-        a: 'Los envíos nacionales suelen demorar entre 24 y 48 horas hábiles desde la confirmación de la compra.',
+        a: 'Los envíos nacionales suelen tardar entre 24 y 48 horas laborables desde la confirmación de la compra.',
       },
       {
         q: '¿Puedo hacer seguimiento de mi pedido?',
-        a: 'Sí, te enviamos un correo con el número de seguimiento apenas tu pedido sale del depósito.',
+        a: 'Sí, te enviamos un correo con el número de seguimiento en cuanto tu pedido sale del almacén.',
       },
     ],
   },
@@ -43,11 +43,11 @@ const TABS = [
     questions: [
       {
         q: '¿Cómo cancelo o modifico mi suscripción?',
-        a: 'Podés gestionar tu suscripción (pausar, cambiar frecuencia o cancelar) desde tu cuenta en cualquier momento.',
+        a: 'Puedes gestionar tu suscripción (pausar, cambiar frecuencia o cancelar) desde tu cuenta en cualquier momento.',
       },
       {
         q: '¿Cuál es la política de devoluciones?',
-        a: 'Consultá nuestra política de devoluciones y reembolsos en el pie de página para conocer todos los detalles.',
+        a: 'Consulta nuestra política de devoluciones y reembolsos en el pie de página para conocer todos los detalles.',
       },
     ],
   },
@@ -103,7 +103,7 @@ export function ProductFaq() {
       </div>
 
       <a href="/pages/contact" className="faq-ask-link">
-        ¿Tenés otra pregunta? Contactanos
+        ¿Tienes otra pregunta? Contáctanos
       </a>
     </section>
   );

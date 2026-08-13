@@ -6,10 +6,10 @@ const SECTIONS = [
     title: '¿Es para ti?',
     content: (
       <ul className="accordion-checklist">
-        <li>Buscás apoyar tu pH y flora vaginal de forma natural</li>
-        <li>Notaste molestias o olor ocasional</li>
-        <li>Querés incorporar un probiótico a tu rutina diaria</li>
-        <li>Preferís un suplemento fácil de tomar, sin sabor</li>
+        <li>Buscas apoyar tu pH y flora vaginal de forma natural</li>
+        <li>Has notado molestias u olor ocasional</li>
+        <li>Quieres incorporar un probiótico a tu rutina diaria</li>
+        <li>Prefieres un suplemento fácil de tomar, sin sabor</li>
       </ul>
     ),
   },
@@ -32,7 +32,7 @@ const SECTIONS = [
       <p>
         Tomar 1 cápsula al día con un vaso de agua, preferentemente con el
         estómago vacío. Para mejores resultados, usar de forma continua
-        durante 2-3 meses. Consultá con tu profesional de la salud antes de
+        durante 2-3 meses. Consulta con tu profesional de la salud antes de
         comenzar si estás embarazada, amamantando o tomando medicación.
       </p>
     ),

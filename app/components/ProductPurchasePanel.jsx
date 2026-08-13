@@ -147,7 +147,7 @@ export function ProductPurchasePanel({product, productOptions, selectedVariant})
       </p>
 
       <span className="purchase-sold-badge">
-        🔥 Más de <strong>10.000</strong> potes vendidos
+        🔥 Más de <strong>10.000</strong> botes vendidos
       </span>
 
       <ProductOptionsSelector productOptions={otherOptions} />
