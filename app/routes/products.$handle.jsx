@@ -23,8 +23,8 @@ import {ProductRelated} from '~/components/ProductRelated';
 import {ProductBlogSection} from '~/components/ProductBlogSection';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
 
-// Trust-building banner between the video carousel and the photo
-// testimonials — bridges the two social-proof sections.
+// Trust-building banner that closes the video carousel and leads into the
+// FAQ, which now answers the buyer's objections before the photo testimonials.
 const TRUST_TICKER_ITEMS = [
   '+10.000 clientas satisfechas',
   '★★★★★ Valorado 4.8/5',
@@ -170,6 +170,7 @@ export default function Product() {
 
       <ProductVideoSection />
       <TickerSection items={TRUST_TICKER_ITEMS} />
+      <ProductFaq />
       <TestimonialsSection />
 
       <Suspense fallback={null}>
@@ -188,8 +189,6 @@ export default function Product() {
           {(products) => <ProductRelated products={products} />}
         </Await>
       </Suspense>
-
-      <ProductFaq />
 
       <Suspense fallback={null}>
         <Await resolve={blogArticles}>

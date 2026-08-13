@@ -5,7 +5,6 @@ const MESSAGES = [
     Envío gratuito a partir de <strong>39,99€</strong>
   </>,
   <>Envíos Nacionales en 24-48 h</>,
-  <>Pagos contrareembolso</>,
 ];
 
 const ROTATE_MS = 4000;

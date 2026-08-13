@@ -1,5 +1,6 @@
 import {Suspense} from 'react';
 import {Await, NavLink} from 'react-router';
+import {policyLabel} from '~/lib/policyLabels';
 
 /**
  * @param {FooterProps}
@@ -10,17 +11,60 @@ export function Footer({footer: footerPromise, header, publicStoreDomain}) {
       <Await resolve={footerPromise}>
         {(footer) => (
           <footer className="footer">
-            {footer?.menu && header.shop.primaryDomain?.url && (
-              <FooterMenu
-                menu={footer.menu}
-                primaryDomainUrl={header.shop.primaryDomain.url}
-                publicStoreDomain={publicStoreDomain}
-              />
-            )}
+            <div className="footer-inner">
+              {footer?.menu && header.shop.primaryDomain?.url && (
+                <FooterMenu
+                  menu={footer.menu}
+                  primaryDomainUrl={header.shop.primaryDomain.url}
+                  publicStoreDomain={publicStoreDomain}
+                />
+              )}
+
+              <FooterPolicies shop={footer?.shop} />
+
+              <p className="footer-legal">
+                © {new Date().getFullYear()} {header.shop.name}. Todos los
+                derechos reservados.
+              </p>
+            </div>
           </footer>
         )}
       </Await>
     </Suspense>
+  );
+}
+
+/**
+ * Las políticas legales, en el orden en que a una clienta le importan: primero
+ * cómo contactar y qué pasa con su pedido, después la letra pequeña. Solo se
+ * pintan las que existen en Shopify.
+ * @param {{shop?: FooterQuery['shop']}}
+ */
+function FooterPolicies({shop}) {
+  const policies = [
+    shop?.contactInformation,
+    shop?.shippingPolicy,
+    shop?.refundPolicy,
+    shop?.subscriptionPolicy,
+    shop?.privacyPolicy,
+    shop?.termsOfService,
+    shop?.legalNotice,
+  ].filter(Boolean);
+
+  if (!policies.length) return null;
+
+  return (
+    <nav className="footer-policies" aria-label="Información legal">
+      {policies.map((policy) => (
+        <NavLink
+          key={policy.id}
+          to={`/policies/${policy.handle}`}
+          prefetch="intent"
+        >
+          {policyLabel(policy)}
+        </NavLink>
+      ))}
+    </nav>
   );
 }
 
@@ -34,7 +78,7 @@ export function Footer({footer: footerPromise, header, publicStoreDomain}) {
 function FooterMenu({menu, primaryDomainUrl, publicStoreDomain}) {
   return (
     <nav className="footer-menu" role="navigation">
-      {(menu || FALLBACK_FOOTER_MENU).items.map((item) => {
+      {menu.items.map((item) => {
         if (!item.url) return null;
         // if the url is internal, we strip the domain
         const url =
@@ -63,48 +107,6 @@ function FooterMenu({menu, primaryDomainUrl, publicStoreDomain}) {
     </nav>
   );
 }
-
-const FALLBACK_FOOTER_MENU = {
-  id: 'gid://shopify/Menu/199655620664',
-  items: [
-    {
-      id: 'gid://shopify/MenuItem/461633060920',
-      resourceId: 'gid://shopify/ShopPolicy/23358046264',
-      tags: [],
-      title: 'Privacy Policy',
-      type: 'SHOP_POLICY',
-      url: '/policies/privacy-policy',
-      items: [],
-    },
-    {
-      id: 'gid://shopify/MenuItem/461633093688',
-      resourceId: 'gid://shopify/ShopPolicy/23358013496',
-      tags: [],
-      title: 'Refund Policy',
-      type: 'SHOP_POLICY',
-      url: '/policies/refund-policy',
-      items: [],
-    },
-    {
-      id: 'gid://shopify/MenuItem/461633126456',
-      resourceId: 'gid://shopify/ShopPolicy/23358111800',
-      tags: [],
-      title: 'Shipping Policy',
-      type: 'SHOP_POLICY',
-      url: '/policies/shipping-policy',
-      items: [],
-    },
-    {
-      id: 'gid://shopify/MenuItem/461633159224',
-      resourceId: 'gid://shopify/ShopPolicy/23358079032',
-      tags: [],
-      title: 'Terms of Service',
-      type: 'SHOP_POLICY',
-      url: '/policies/terms-of-service',
-      items: [],
-    },
-  ],
-};
 
 /**
  * @param {{

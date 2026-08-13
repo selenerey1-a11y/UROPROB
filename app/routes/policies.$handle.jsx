@@ -1,11 +1,28 @@
 import {Link, useLoaderData} from 'react-router';
+import {policyLabel} from '~/lib/policyLabels';
 
 /**
  * @type {Route.MetaFunction}
  */
 export const meta = ({data}) => {
-  return [{title: `Hydrogen | ${data?.policy.title ?? ''}`}];
+  return [{title: `UROPROB | ${data?.policy ? policyLabel(data.policy) : ''}`}];
 };
+
+/**
+ * @param {Route.LoaderArgs}
+ */
+// Los siete tipos de política que expone la Storefront API. La plantilla solo
+// contemplaba cuatro, así que /policies/subscription-policy, /legal-notice y
+// /contact-information daban 404 aunque estuvieran redactadas en Shopify.
+const POLICY_FIELDS = [
+  'contactInformation',
+  'shippingPolicy',
+  'refundPolicy',
+  'subscriptionPolicy',
+  'privacyPolicy',
+  'termsOfService',
+  'legalNotice',
+];
 
 /**
  * @param {Route.LoaderArgs}
@@ -19,13 +36,17 @@ export async function loader({params, context}) {
     m1.toUpperCase(),
   );
 
+  // Cada @include necesita su variable declarada, así que se mandan las siete
+  // siempre: la pedida en true y el resto en false.
+  if (!POLICY_FIELDS.includes(policyName)) {
+    throw new Response('Could not find the policy', {status: 404});
+  }
+
   const data = await context.storefront.query(POLICY_CONTENT_QUERY, {
     variables: {
-      privacyPolicy: false,
-      shippingPolicy: false,
-      termsOfService: false,
-      refundPolicy: false,
-      [policyName]: true,
+      ...Object.fromEntries(
+        POLICY_FIELDS.map((field) => [field, field === policyName]),
+      ),
       language: context.storefront.i18n?.language,
     },
   });
@@ -45,14 +66,14 @@ export default function Policy() {
 
   return (
     <div className="policy">
-      <br />
-      <br />
-      <div>
-        <Link to="/policies">← Back to Policies</Link>
-      </div>
-      <br />
-      <h1>{policy.title}</h1>
-      <div dangerouslySetInnerHTML={{__html: policy.body}} />
+      <Link to="/policies" className="policy-back">
+        ← Volver a las políticas
+      </Link>
+      <h1>{policyLabel(policy)}</h1>
+      <div
+        className="policy-body"
+        dangerouslySetInnerHTML={{__html: policy.body}}
+      />
     </div>
   );
 }
@@ -69,22 +90,38 @@ const POLICY_CONTENT_QUERY = `#graphql
   query Policy(
     $country: CountryCode
     $language: LanguageCode
+    $contactInformation: Boolean!
+    $legalNotice: Boolean!
     $privacyPolicy: Boolean!
     $refundPolicy: Boolean!
     $shippingPolicy: Boolean!
+    $subscriptionPolicy: Boolean!
     $termsOfService: Boolean!
   ) @inContext(language: $language, country: $country) {
     shop {
-      privacyPolicy @include(if: $privacyPolicy) {
+      contactInformation @include(if: $contactInformation) {
         ...Policy
       }
       shippingPolicy @include(if: $shippingPolicy) {
         ...Policy
       }
+      refundPolicy @include(if: $refundPolicy) {
+        ...Policy
+      }
+      subscriptionPolicy @include(if: $subscriptionPolicy) {
+        body
+        handle
+        id
+        title
+        url
+      }
+      privacyPolicy @include(if: $privacyPolicy) {
+        ...Policy
+      }
       termsOfService @include(if: $termsOfService) {
         ...Policy
       }
-      refundPolicy @include(if: $refundPolicy) {
+      legalNotice @include(if: $legalNotice) {
         ...Policy
       }
     }
@@ -94,7 +131,13 @@ const POLICY_CONTENT_QUERY = `#graphql
 /**
  * @typedef {keyof Pick<
  *   Shop,
- *   'privacyPolicy' | 'shippingPolicy' | 'termsOfService' | 'refundPolicy'
+ *   | 'contactInformation'
+ *   | 'shippingPolicy'
+ *   | 'refundPolicy'
+ *   | 'subscriptionPolicy'
+ *   | 'privacyPolicy'
+ *   | 'termsOfService'
+ *   | 'legalNotice'
  * >} SelectedPolicies
  */
 

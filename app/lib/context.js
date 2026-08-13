@@ -43,8 +43,12 @@ export async function createHydrogenRouterContext(
       cache,
       waitUntil,
       session,
-      // Or detect from URL path based on locale subpath, cookies, or any other strategy
-      i18n: {language: 'EN', country: 'US'},
+      // Or detect from URL path based on locale subpath, cookies, or any other strategy.
+      // This is what every Storefront query runs @inContext with, and the cart
+      // carries it through to checkout — leaving the template's EN/US default
+      // is what rendered the whole checkout in English. The store publishes
+      // "es" and its only market is Spain, so ES/ES is the real context.
+      i18n: {language: 'ES', country: 'ES'},
       cart: {
         queryFragment: CART_QUERY_FRAGMENT,
       },

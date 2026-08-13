@@ -1,4 +1,5 @@
 import {useMemo, useState} from 'react';
+import {useNavigate} from 'react-router';
 import {Money} from '@shopify/hydrogen';
 import {AddToCartButton} from './AddToCartButton';
 import {useAside} from './Aside';
@@ -8,16 +9,21 @@ import {REVIEWS, getReviewStats} from '~/lib/placeholderReviews';
 
 const reviewStats = getReviewStats(REVIEWS);
 
-// Flat bundle pricing per quantity tier — the *total* the customer pays for
-// that many bottles, not a per-unit price. Verified against real carts on
-// 2026-08-10: Shopify already rings up 29,99 / 39,99 / 49,99 for one, two and
-// three bottles, so these match checkout exactly. Change one here and the
-// matching automatic discount in Shopify has to move with it.
-const QUANTITY_TILES = [
-  {units: 1, price: '29.99', ribbon: null},
-  {units: 2, price: '39.99', ribbon: 'RECOMENDADO'},
-  {units: 3, price: '49.99', ribbon: 'MEJOR VALOR'},
-];
+// Ribbons are per bundle position, not per price — the second tier is the one
+// we push and the last is the cheapest per bottle.
+const TILE_RIBBONS = [null, 'RECOMENDADO', 'MEJOR VALOR'];
+
+// The bundles are real Shopify *variants* ("Formato": 1/2/3 Botes, priced
+// 29,99 / 39,99 / 49,99), not a quantity of the single-bottle variant. So a
+// tile has to switch the selected variant and always add quantity 1 — adding
+// quantity N of the 1-bottle variant charges N x 29,99 at checkout instead of
+// the bundle price. Every number on this panel is therefore read straight off
+// the variant and its selling-plan allocation; nothing is hardcoded or
+// recomputed here, which is what keeps the display and checkout in agreement.
+function bundleUnits(name, index) {
+  const match = /\d+/.exec(name);
+  return match ? Number(match[0]) : index + 1;
+}
 
 function unitsLabel(units) {
   return units === 1 ? '1 Bote' : `${units} Botes`;
@@ -31,9 +37,7 @@ function unitsLabel(units) {
  *
  * Subscription pricing comes straight from the product's real
  * sellingPlanGroups/sellingPlanAllocations — nothing is fabricated there;
- * the same monthly plan applies no matter how many bottles are selected.
- * Every total shown here was checked against a real cart and matches what
- * checkout charges; if you touch the pricing maths, check it again.
+ * the same monthly plan applies no matter which bundle is selected.
  * @param {{
  *   product: ProductFragment;
  *   productOptions: MappedProductOptions[];
@@ -42,10 +46,23 @@ function unitsLabel(units) {
  */
 export function ProductPurchasePanel({product, productOptions, selectedVariant}) {
   const {open} = useAside();
-  const [tileIndex, setTileIndex] = useState(1);
+  const navigate = useNavigate();
 
-  const tile = QUANTITY_TILES[tileIndex];
-  const cartQuantity = tile.units;
+  // The first multi-value option is the bundle picker, rendered as the price
+  // tiles below; anything else (a flavour, a scent) still goes through the
+  // normal option selector.
+  const bundleOption = productOptions.find((o) => o.optionValues.length > 1);
+  const otherOptions = productOptions.filter((o) => o !== bundleOption);
+
+  const tiles = (bundleOption?.optionValues ?? []).map((value, index) => ({
+    ...value,
+    units: bundleUnits(value.name, index),
+    ribbon: TILE_RIBBONS[index] ?? null,
+    price: Number(value.firstSelectableVariant?.price?.amount ?? 0),
+  }));
+
+  const tile = tiles.find((t) => t.selected) ?? tiles[0];
+  const units = tile?.units ?? 1;
   const currencyCode = selectedVariant?.price?.currencyCode || 'EUR';
 
   const plans = useMemo(
@@ -53,8 +70,8 @@ export function ProductPurchasePanel({product, productOptions, selectedVariant})
     [product.sellingPlanGroups],
   );
   const allocations = selectedVariant?.sellingPlanAllocations?.nodes ?? [];
-  // Subscribing is available for every quantity tier — it's the same real
-  // monthly plan underneath regardless of how many bottles are in the order.
+  // Subscribing is available for every bundle — it's the same real monthly
+  // plan underneath regardless of how many bottles the variant holds.
   const hasSubscription = plans.length > 0 && allocations.length > 0;
 
   const [purchaseType, setPurchaseType] = useState(
@@ -68,36 +85,23 @@ export function ProductPurchasePanel({product, productOptions, selectedVariant})
   const isSubscribing =
     hasSubscription && purchaseType === 'subscription' && !!selectedAllocation;
 
-  const subscriptionUnitCompareAtPrice =
-    selectedAllocation?.priceAdjustments[0]?.compareAtPrice;
+  // "Regular" per-bottle reference price — the 1-bottle tile is the baseline
+  // every bundle saving and strikethrough is measured against.
+  const regularUnitPrice = tiles.length
+    ? tiles[0].price / tiles[0].units
+    : Number(selectedVariant?.price?.amount ?? 0);
+  const regularTotal = regularUnitPrice * units;
 
-  // "Regular" per-bottle reference price — the 1-bottle tile's price is the
-  // baseline every bundle discount and strikethrough is measured against.
-  const regularUnitPrice = Number(QUANTITY_TILES[0].price);
-  const regularTotal = regularUnitPrice * tile.units;
-  const oneTimeTotal = Number(tile.price);
-  const oneTimeUnitPrice = oneTimeTotal / tile.units;
-
-  // The selling plan takes a fixed amount off each bottle (3,00 € at the time
-  // of writing), not a percentage, and Shopify charges that same amount per
-  // unit whatever the bundle is: 39,99 - 6,00 = 33,99 for two bottles. So the
-  // saving has to be *subtracted* per unit here too. Scaling the bundle price
-  // by a ratio instead (39,99 x 0,9 = 35,99) overcharges on screen relative to
-  // what the cart really rings up, and the gap grows with the quantity.
-  const subscriptionUnitPrice = selectedAllocation?.priceAdjustments[0]?.price;
-  const subscriptionUnitDiscount = subscriptionUnitPrice
-    ? Number(
-        subscriptionUnitCompareAtPrice?.amount ?? regularUnitPrice,
-      ) - Number(subscriptionUnitPrice.amount)
-    : null;
-  const subscriptionUnitPriceForTile =
-    subscriptionUnitDiscount != null
-      ? Math.max(oneTimeUnitPrice - subscriptionUnitDiscount, 0)
-      : null;
+  // Bundle price = the variant's own price. Subscription price = whatever the
+  // selling plan allocates for that same variant (a 10% policy today, but the
+  // allocation is authoritative whatever the policy becomes). Both are the
+  // totals for the whole bundle, so checkout cannot disagree with them.
+  const oneTimeTotal = Number(
+    selectedVariant?.price?.amount ?? tile?.price ?? 0,
+  );
+  const subscriptionAmount = selectedAllocation?.priceAdjustments[0]?.price?.amount;
   const subscriptionTotal =
-    subscriptionUnitPriceForTile != null
-      ? subscriptionUnitPriceForTile * tile.units
-      : null;
+    subscriptionAmount != null ? Number(subscriptionAmount) : null;
 
   const selectedTotal =
     isSubscribing && subscriptionTotal != null ? subscriptionTotal : oneTimeTotal;
@@ -107,12 +111,20 @@ export function ProductPurchasePanel({product, productOptions, selectedVariant})
     ? [
         {
           merchandiseId: selectedVariant.id,
-          quantity: cartQuantity,
+          quantity: 1,
           selectedVariant,
           ...(isSubscribing ? {sellingPlanId: selectedPlanId} : {}),
         },
       ]
     : [];
+
+  function selectTile(t) {
+    if (t.selected) return;
+    const to = t.isDifferentProduct
+      ? `/products/${t.handle}?${t.variantUriQuery}`
+      : `?${t.variantUriQuery}`;
+    void navigate(to, {replace: true, preventScrollReset: true});
+  }
 
   return (
     <div className="purchase-panel">
@@ -138,23 +150,25 @@ export function ProductPurchasePanel({product, productOptions, selectedVariant})
         🔥 Más de <strong>10.000</strong> potes vendidos
       </span>
 
-      <ProductOptionsSelector productOptions={productOptions} />
+      <ProductOptionsSelector productOptions={otherOptions} />
 
       <div className="purchase-quantity">
         <h5>Seleccionar cantidad</h5>
         <div className="purchase-quantity-grid">
-          {QUANTITY_TILES.map((t, index) => {
+          {tiles.map((t) => {
             const tRegularTotal = regularUnitPrice * t.units;
             const savePercent =
-              t.units > 1
-                ? Math.round((1 - Number(t.price) / tRegularTotal) * 100)
+              t.units > 1 && tRegularTotal > 0
+                ? Math.round((1 - t.price / tRegularTotal) * 100)
                 : null;
             return (
               <button
-                key={t.units}
+                key={t.name}
                 type="button"
-                className={`purchase-quantity-tile${tileIndex === index ? ' is-selected' : ''}`}
-                onClick={() => setTileIndex(index)}
+                disabled={!t.exists}
+                className={`purchase-quantity-tile${t.selected ? ' is-selected' : ''}`}
+                style={{opacity: t.available ? 1 : 0.3}}
+                onClick={() => selectTile(t)}
               >
                 {t.ribbon ? (
                   <span
@@ -195,19 +209,20 @@ export function ProductPurchasePanel({product, productOptions, selectedVariant})
                 onChange={() => setPurchaseType('subscription')}
               />
               <span className="purchase-type-option-name">
-                {unitsLabel(tile.units)} · Suscripción mensual
+                {unitsLabel(units)} · Suscripción mensual
               </span>
               <span className="purchase-type-option-price">
-                {subscriptionUnitCompareAtPrice ? (
-                  <s>
-                    <Money as="span" data={subscriptionUnitCompareAtPrice} />
-                  </s>
-                ) : null}
-                {subscriptionUnitPriceForTile != null ? (
+                <s>
+                  <Money
+                    as="span"
+                    data={{amount: regularUnitPrice.toFixed(2), currencyCode}}
+                  />
+                </s>
+                {subscriptionTotal != null ? (
                   <Money
                     as="span"
                     data={{
-                      amount: subscriptionUnitPriceForTile.toFixed(2),
+                      amount: (subscriptionTotal / units).toFixed(2),
                       currencyCode,
                     }}
                   />
@@ -220,9 +235,9 @@ export function ProductPurchasePanel({product, productOptions, selectedVariant})
                 <li>✓ Fácil de editar, pausar o cancelar cuando quieras</li>
                 <li>
                   ✓{' '}
-                  {tile.units === 1
+                  {units === 1
                     ? '1 bote se envía cada mes'
-                    : `${tile.units} botes se envían cada mes`}
+                    : `${units} botes se envían cada mes`}
                 </li>
               </ul>
             </label>
@@ -241,12 +256,12 @@ export function ProductPurchasePanel({product, productOptions, selectedVariant})
                 <s>
                   <Money
                     as="span"
-                    data={{amount: String(regularUnitPrice), currencyCode}}
+                    data={{amount: regularUnitPrice.toFixed(2), currencyCode}}
                   />
                 </s>
                 <Money
                   as="span"
-                  data={{amount: oneTimeUnitPrice.toFixed(2), currencyCode}}
+                  data={{amount: (oneTimeTotal / units).toFixed(2), currencyCode}}
                 />
                 <span className="purchase-type-option-unit">/bote</span>
               </span>

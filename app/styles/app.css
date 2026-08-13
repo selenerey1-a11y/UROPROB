@@ -518,8 +518,14 @@ button.reset:hover:not(:has(> *)) {
 * --------------------------------------------------
 */
 .footer {
-  background: var(--color-dark);
+  background: var(--color-deep-red);
   margin-top: auto;
+}
+
+.footer-inner {
+  margin: 0 auto;
+  max-width: 60rem;
+  padding: 2rem 1.25rem 1.75rem;
 }
 
 .footer-menu {
@@ -527,12 +533,125 @@ button.reset:hover:not(:has(> *)) {
   display: flex;
   flex-wrap: wrap;
   grid-gap: 1rem;
-  padding: 1rem;
+  padding: 0 0 1.25rem;
 }
 
 .footer-menu a {
   color: var(--color-light);
   min-width: fit-content;
+}
+
+/* Las políticas van en su propia fila, separadas del menú comercial: son
+   enlaces de obligado cumplimiento, no navegación de tienda. */
+.footer-policies {
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1.4rem;
+  justify-content: center;
+  padding-top: 1.25rem;
+}
+
+.footer-policies a {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.88rem;
+  text-decoration: none;
+}
+
+.footer-policies a:hover,
+.footer-policies a:focus-visible {
+  color: var(--color-light);
+  text-decoration: underline;
+}
+
+.footer-legal {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.8rem;
+  margin: 1.25rem 0 0;
+  text-align: center;
+}
+
+/*
+* --------------------------------------------------
+* routes/policies
+* --------------------------------------------------
+*/
+.policies,
+.policy {
+  margin: 0 auto;
+  max-width: 48rem;
+  padding: 2.5rem 1.25rem 4rem;
+}
+
+.policies h1,
+.policy h1 {
+  color: var(--color-deep-red);
+  font-size: 1.9rem;
+  font-weight: 800;
+  margin: 0 0 1.5rem;
+}
+
+.policies-list {
+  display: grid;
+  gap: 0.75rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.policies-list a {
+  color: var(--color-accent-dark);
+  font-weight: 600;
+}
+
+.policy-back {
+  color: var(--color-deep-red);
+  display: inline-block;
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+}
+
+/* El cuerpo llega como HTML de Shopify, así que se le da ritmo aquí en vez de
+   por clases: son <p>, <ul>, <h3> sueltos sin ninguna marca propia. */
+.policy-body {
+  color: var(--color-accent-dark);
+  line-height: 1.65;
+}
+
+.policy-body h1,
+.policy-body h2,
+.policy-body h3,
+.policy-body h4 {
+  color: var(--color-accent-dark);
+  font-weight: 700;
+  margin: 2rem 0 0.75rem;
+}
+
+.policy-body h1 {
+  font-size: 1.5rem;
+}
+
+.policy-body h3 {
+  font-size: 1.1rem;
+}
+
+.policy-body p {
+  margin: 0 0 1rem;
+}
+
+.policy-body ul,
+.policy-body ol {
+  margin: 0 0 1rem;
+  padding-left: 1.4rem;
+}
+
+.policy-body li {
+  margin-bottom: 0.4rem;
+}
+
+.policy-body a {
+  color: var(--color-deep-red);
+  overflow-wrap: anywhere;
 }
 
 /*
@@ -556,15 +675,18 @@ button.reset:hover:not(:has(> *)) {
   flex-direction: column;
 }
 
+/* El resumen va pegado abajo con position:sticky, así que flota por encima de
+   las líneas. Sin este hueco al final, el último producto queda tapado y no
+   hay forma de sacarlo scrolleando. */
 .cart-lines-wrap {
-  padding: 0 1.25rem;
+  padding: 0 1.25rem 1.25rem;
 }
 
 .cart-details-heading {
   color: var(--color-accent-dark);
   font-size: 1.15rem;
   font-weight: 800;
-  margin: 1rem 1.25rem 0.85rem;
+  margin: 0.8rem 1.25rem 0.55rem;
 }
 
 /*
@@ -579,15 +701,15 @@ button.reset:hover:not(:has(> *)) {
   border-radius: 1rem;
   box-shadow: 0 2px 10px rgba(163, 30, 52, 0.06);
   flex-shrink: 0;
-  margin: 1rem 1.25rem 0;
-  padding: 0.9rem 1rem;
+  margin: 0.75rem 1.25rem 0;
+  padding: 0.7rem 0.9rem;
 }
 
 .cart-free-shipping-head {
   align-items: center;
   display: flex;
   gap: 0.65rem;
-  margin-bottom: 0.7rem;
+  margin-bottom: 0.55rem;
 }
 
 .cart-free-shipping-icon {
@@ -878,11 +1000,15 @@ button.reset:hover:not(:has(> *)) {
 .cart-summary-aside {
   background: var(--color-light);
   border-top: 1px solid #ececec;
-  /* Sits below the lines; pushed to the bottom of the drawer when the cart is
-     short enough that everything fits without scrolling. */
+  /* Anclado al fondo del cajón: el botón de pago siempre está a la vista y solo
+     scrollean los productos por detrás. */
+  bottom: 0;
+  box-shadow: 0 -6px 18px rgba(0, 0, 0, 0.06);
   margin-top: auto;
-  padding: 1.1rem 1.25rem 1.25rem;
+  padding: 0.9rem 1.25rem 1rem;
+  position: sticky;
   width: auto;
+  z-index: 2;
 }
 
 /* Child line components (warranties, gift wrapping, etc.) */
@@ -899,20 +1025,13 @@ button.reset:hover:not(:has(> *)) {
   padding: 1.25rem;
 }
 
-.cart-summary-heading {
-  color: var(--color-accent-dark);
-  font-size: 1.1rem;
-  font-weight: 800;
-  margin: 0 0 0.85rem;
-}
-
 .cart-summary-row {
   align-items: center;
   color: var(--color-accent-dark);
   display: flex;
   font-size: 0.95rem;
   justify-content: space-between;
-  margin: 0 0 0.5rem;
+  margin: 0 0 0.35rem;
 }
 
 .cart-subtotal dt {
@@ -927,8 +1046,8 @@ button.reset:hover:not(:has(> *)) {
 .cart-total {
   border-top: 1px solid rgba(43, 43, 43, 0.12);
   font-size: 1.05rem;
-  margin-bottom: 1rem;
-  padding-top: 0.6rem;
+  margin-bottom: 0.6rem;
+  padding-top: 0.5rem;
 }
 
 .cart-total dt {
@@ -940,8 +1059,51 @@ button.reset:hover:not(:has(> *)) {
   margin: 0;
 }
 
+/* Los códigos van plegados: el botón de pago queda a la vista sin scroll. */
+.cart-summary-codes {
+  margin-bottom: 0.25rem;
+}
+
+.cart-summary-codes-toggle {
+  color: #8a8a8a;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  list-style: none;
+  padding: 0.35rem 0;
+  text-transform: uppercase;
+}
+
+.cart-summary-codes-toggle::-webkit-details-marker {
+  display: none;
+}
+
+.cart-summary-codes-toggle::after {
+  content: ' +';
+  font-weight: 800;
+}
+
+.cart-summary-codes[open] .cart-summary-codes-toggle::after {
+  content: ' −';
+}
+
+.cart-summary-codes-toggle:hover {
+  color: var(--color-primary-dark);
+}
+
+.cart-summary-codes-body {
+  padding-top: 0.35rem;
+}
+
 .cart-summary-code-section {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.4rem;
+  /* El reset da 1-2rem de padding a todo <section>: aquí sobra por completo. */
+  padding: 0;
+}
+
+.cart-summary-code-section:last-child {
+  margin-bottom: 0;
 }
 
 .cart-summary-code-label {
@@ -955,7 +1117,7 @@ button.reset:hover:not(:has(> *)) {
 
 .cart-summary-code-form {
   display: flex;
-  gap: 0.6rem;
+  gap: 0.5rem;
 }
 
 .cart-summary-code-input {
@@ -965,8 +1127,10 @@ button.reset:hover:not(:has(> *)) {
   color: var(--color-accent-dark);
   flex: 1;
   font-size: 0.85rem;
+  /* Anula los márgenes de input del reset, que separaban ambos campos. */
+  margin: 0;
   min-width: 0;
-  padding: 0.6rem 1rem;
+  padding: 0.5rem 0.9rem;
 }
 
 .cart-summary-code-input::placeholder {
@@ -1011,8 +1175,8 @@ button.reset:hover:not(:has(> *)) {
   font-weight: 700;
   gap: 0.5rem;
   justify-content: space-between;
-  margin-bottom: 0.6rem;
-  padding: 0.5rem 0.5rem 0.5rem 0.9rem;
+  margin-bottom: 0.4rem;
+  padding: 0.4rem 0.4rem 0.4rem 0.9rem;
 }
 
 .cart-summary-chip code {
@@ -2978,4 +3142,90 @@ button.reset:hover:not(:has(> *)) {
   text-align: center;
   text-decoration: underline;
   text-underline-offset: 3px;
+}
+
+/*
+* --------------------------------------------------
+* routes/pages.contact
+* --------------------------------------------------
+*/
+.contact-page {
+  margin: 0 auto;
+  max-width: 720px;
+  padding: 2rem 1.25rem 3rem;
+}
+
+.contact-hero {
+  text-align: center;
+}
+
+.contact-eyebrow {
+  color: var(--color-primary-dark);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  margin: 0 0 0.4rem;
+  text-transform: uppercase;
+}
+
+.contact-title {
+  color: var(--color-accent-dark);
+  font-size: clamp(1.8rem, 6vw, 2.4rem);
+  font-weight: 800;
+  margin: 0 0 0.75rem;
+}
+
+.contact-intro {
+  color: #5a5a5a;
+  font-size: 1rem;
+  line-height: 1.6;
+  margin: 0 auto;
+  max-width: 34rem;
+}
+
+.contact-card {
+  background: linear-gradient(135deg, var(--color-bg-soft) 0%, #fff 70%);
+  border: 1px solid rgba(163, 30, 52, 0.12);
+  border-radius: 1.25rem;
+  margin: 2rem 0;
+  padding: 1.75rem 1.5rem;
+  text-align: center;
+}
+
+.contact-card-label {
+  color: #8a8a8a;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  margin: 0 0 0.5rem;
+  text-transform: uppercase;
+}
+
+.contact-email {
+  color: var(--color-deep-red);
+  display: inline-block;
+  font-size: clamp(1.15rem, 5vw, 1.6rem);
+  font-weight: 800;
+  /* El correo no debe partirse en dos líneas en móvil. */
+  overflow-wrap: anywhere;
+  text-decoration: none;
+}
+
+.contact-email:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.contact-card-note {
+  color: #5a5a5a;
+  font-size: 0.88rem;
+  margin: 0.6rem 0 0;
+}
+
+.contact-footnote {
+  color: #8a8a8a;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  margin: 2rem 0 0;
+  text-align: center;
 }

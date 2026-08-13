@@ -1,4 +1,5 @@
 import {useLoaderData, Link} from 'react-router';
+import {policyLabel} from '~/lib/policyLabels';
 
 /**
  * @param {Route.LoaderArgs}
@@ -7,12 +8,16 @@ export async function loader({context}) {
   const data = await context.storefront.query(POLICIES_QUERY);
 
   const shopPolicies = data.shop;
+  // Mismo orden que en el pie: primero lo que afecta al pedido, después la
+  // letra pequeña.
   const policies = [
-    shopPolicies?.privacyPolicy,
+    shopPolicies?.contactInformation,
     shopPolicies?.shippingPolicy,
-    shopPolicies?.termsOfService,
     shopPolicies?.refundPolicy,
     shopPolicies?.subscriptionPolicy,
+    shopPolicies?.privacyPolicy,
+    shopPolicies?.termsOfService,
+    shopPolicies?.legalNotice,
   ].filter((policy) => policy != null);
 
   if (!policies.length) {
@@ -28,14 +33,14 @@ export default function Policies() {
 
   return (
     <div className="policies">
-      <h1>Policies</h1>
-      <div>
+      <h1>Políticas</h1>
+      <ul className="policies-list">
         {policies.map((policy) => (
-          <fieldset key={policy.id}>
-            <Link to={`/policies/${policy.handle}`}>{policy.title}</Link>
-          </fieldset>
+          <li key={policy.id}>
+            <Link to={`/policies/${policy.handle}`}>{policyLabel(policy)}</Link>
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   );
 }
@@ -49,13 +54,10 @@ const POLICIES_QUERY = `#graphql
   query Policies ($country: CountryCode, $language: LanguageCode)
     @inContext(country: $country, language: $language) {
     shop {
-      privacyPolicy {
+      contactInformation {
         ...PolicyItem
       }
       shippingPolicy {
-        ...PolicyItem
-      }
-      termsOfService {
         ...PolicyItem
       }
       refundPolicy {
@@ -65,6 +67,15 @@ const POLICIES_QUERY = `#graphql
         id
         title
         handle
+      }
+      privacyPolicy {
+        ...PolicyItem
+      }
+      termsOfService {
+        ...PolicyItem
+      }
+      legalNotice {
+        ...PolicyItem
       }
     }
   }

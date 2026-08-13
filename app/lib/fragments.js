@@ -250,7 +250,16 @@ export const HEADER_QUERY = `#graphql
   ${MENU_FRAGMENT}
 `;
 
+// Las políticas se piden aquí, no se escriben a mano en el footer: así el pie
+// enseña exactamente las que existen en Shopify, con su título real y en el
+// idioma del contexto. Una política sin redactar vuelve como null y su enlace
+// simplemente no se pinta.
 export const FOOTER_QUERY = `#graphql
+  fragment FooterPolicy on ShopPolicy {
+    id
+    title
+    handle
+  }
   query Footer(
     $country: CountryCode
     $footerMenuHandle: String!
@@ -258,6 +267,31 @@ export const FOOTER_QUERY = `#graphql
   ) @inContext(language: $language, country: $country) {
     menu(handle: $footerMenuHandle) {
       ...Menu
+    }
+    shop {
+      contactInformation {
+        ...FooterPolicy
+      }
+      shippingPolicy {
+        ...FooterPolicy
+      }
+      refundPolicy {
+        ...FooterPolicy
+      }
+      subscriptionPolicy {
+        id
+        title
+        handle
+      }
+      privacyPolicy {
+        ...FooterPolicy
+      }
+      termsOfService {
+        ...FooterPolicy
+      }
+      legalNotice {
+        ...FooterPolicy
+      }
     }
   }
   ${MENU_FRAGMENT}

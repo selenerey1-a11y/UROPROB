@@ -32,10 +32,6 @@ const TABS = [
         a: 'Los envíos nacionales suelen demorar entre 24 y 48 horas hábiles desde la confirmación de la compra.',
       },
       {
-        q: '¿Tienen pago contra reembolso?',
-        a: 'Sí, ofrecemos pago contra reembolso en las zonas habilitadas. Vas a ver la opción disponible al finalizar la compra si aplica.',
-      },
-      {
         q: '¿Puedo hacer seguimiento de mi pedido?',
         a: 'Sí, te enviamos un correo con el número de seguimiento apenas tu pedido sale del depósito.',
       },
@@ -106,7 +102,7 @@ export function ProductFaq() {
         })}
       </div>
 
-      <a href="/pages/contacto" className="faq-ask-link">
+      <a href="/pages/contact" className="faq-ask-link">
         ¿Tenés otra pregunta? Contactanos
       </a>
     </section>

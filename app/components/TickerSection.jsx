@@ -2,7 +2,6 @@ const TICKER_ITEMS = [
   'Envíos nacionales',
   'Ofertas de Verano',
   'Envíos 24-48 h',
-  'Pago contrareembolso',
 ];
 
 // How many times the item list repeats inside a single group. The scroll

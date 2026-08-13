@@ -8,47 +8,57 @@ import {useFetcher} from 'react-router';
 export function CartSummary({cart, layout}) {
   const className =
     layout === 'page' ? 'cart-summary-page' : 'cart-summary-aside';
-  const summaryId = useId();
   const discountsHeadingId = useId();
   const discountCodeInputId = useId();
   const giftCardHeadingId = useId();
   const giftCardInputId = useId();
 
+  // Con algo ya aplicado el desplegable arranca abierto para que se vea.
+  const hasAppliedCodes =
+    (cart?.discountCodes?.some((discount) => discount.applicable) ?? false) ||
+    (cart?.appliedGiftCards?.length ?? 0) > 0;
+
+  // Subtotal y Total solo se diferencian cuando hay un descuento o una tarjeta
+  // regalo en juego. Mientras coinciden, enseñar las dos filas con la misma
+  // cifra es ruido, así que el subtotal aparece únicamente cuando aporta algo.
+  const subtotalAmount = cart?.cost?.subtotalAmount;
+  const totalAmount = cart?.cost?.totalAmount;
+  const showSubtotal =
+    !!subtotalAmount?.amount &&
+    (!totalAmount?.amount ||
+      Number(subtotalAmount.amount) !== Number(totalAmount.amount));
+
   return (
-    <div aria-labelledby={summaryId} className={`${className} cart-summary`}>
-      <h4 id={summaryId} className="cart-summary-heading">
-        Totales
-      </h4>
-      <dl role="group" className="cart-summary-row cart-subtotal">
-        <dt>Subtotal</dt>
-        <dd>
-          {cart?.cost?.subtotalAmount?.amount ? (
-            <Money data={cart?.cost?.subtotalAmount} />
-          ) : (
-            '-'
-          )}
-        </dd>
-      </dl>
+    <div aria-label="Resumen del pedido" className={`${className} cart-summary`}>
+      {showSubtotal ? (
+        <dl role="group" className="cart-summary-row cart-subtotal">
+          <dt>Subtotal</dt>
+          <dd>
+            <Money data={subtotalAmount} />
+          </dd>
+        </dl>
+      ) : null}
       <dl role="group" className="cart-summary-row cart-total">
         <dt>Total</dt>
-        <dd>
-          {cart?.cost?.totalAmount?.amount ? (
-            <Money data={cart?.cost?.totalAmount} />
-          ) : (
-            '-'
-          )}
-        </dd>
+        <dd>{totalAmount?.amount ? <Money data={totalAmount} /> : '-'}</dd>
       </dl>
-      <CartDiscounts
-        discountCodes={cart?.discountCodes}
-        discountsHeadingId={discountsHeadingId}
-        discountCodeInputId={discountCodeInputId}
-      />
-      <CartGiftCard
-        giftCardCodes={cart?.appliedGiftCards}
-        giftCardHeadingId={giftCardHeadingId}
-        giftCardInputId={giftCardInputId}
-      />
+      <details className="cart-summary-codes" open={hasAppliedCodes}>
+        <summary className="cart-summary-codes-toggle">
+          Código de descuento o tarjeta regalo
+        </summary>
+        <div className="cart-summary-codes-body">
+          <CartDiscounts
+            discountCodes={cart?.discountCodes}
+            discountsHeadingId={discountsHeadingId}
+            discountCodeInputId={discountCodeInputId}
+          />
+          <CartGiftCard
+            giftCardCodes={cart?.appliedGiftCards}
+            giftCardHeadingId={giftCardHeadingId}
+            giftCardInputId={giftCardInputId}
+          />
+        </div>
+      </details>
       <CartCheckoutActions checkoutUrl={cart?.checkoutUrl} />
     </div>
   );
