@@ -36,8 +36,24 @@ const TRUST_TICKER_ITEMS = [
  * @type {Route.MetaFunction}
  */
 export const meta = ({data}) => {
+  const productTitle = data?.product.title ?? '';
+  // El producto estrella se llama igual que la marca, así que anteponerla sin
+  // más daría "UROprob | UROprob". Cuando el nombre ya la lleva, el título se
+  // completa con lo que el producto es; si algún día hay otro producto que no
+  // la lleve, vuelve el prefijo de marca.
+  const title = /uroprob/i.test(productTitle)
+    ? `${productTitle} — Probiótico vaginal con 5 mil millones de UFC`
+    : `UROprob | ${productTitle}`;
+
   return [
-    {title: `UROprob | ${data?.product.title ?? ''}`},
+    {title},
+    {
+      name: 'description',
+      content:
+        data?.product.seo?.description ||
+        data?.product.description?.slice(0, 160) ||
+        undefined,
+    },
     {
       rel: 'canonical',
       href: `/products/${data?.product.handle}`,
