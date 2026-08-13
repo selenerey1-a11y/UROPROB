@@ -305,6 +305,22 @@ export function ProductPurchasePanel({product, productOptions, selectedVariant})
         disabled={!selectedVariant || !selectedVariant.availableForSale}
         onClick={() => open('cart')}
         lines={lines}
+        analytics={{
+          products: [
+            {
+              id: selectedVariant?.id,
+              title: product.title,
+              // El pack es la variante y va de uno en uno, así que el importe
+              // que se reporta es el total real de la línea — con suscripción
+              // no coincide con variant.price.
+              price: selectedTotal.toFixed(2),
+              vendor: product.vendor,
+              variantId: selectedVariant?.id,
+              variantTitle: selectedVariant?.title,
+              quantity: 1,
+            },
+          ],
+        }}
       >
         {selectedVariant?.availableForSale ? (
           <>

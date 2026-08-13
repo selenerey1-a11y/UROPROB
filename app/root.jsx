@@ -15,7 +15,7 @@ import resetStyles from '~/styles/reset.css?url';
 import appStyles from '~/styles/app.css?url';
 import tailwindCss from './styles/tailwind.css?url';
 import {PageLayout} from './components/PageLayout';
-
+import {MetaPixelEvents} from './components/MetaPixelEvents';
 /**
  * This is important to avoid re-fetching root queries on sub-navigations
  * @type {ShouldRevalidateFunction}
@@ -82,7 +82,7 @@ export async function loader(args) {
     consent: {
       checkoutDomain: env.PUBLIC_CHECKOUT_DOMAIN,
       storefrontAccessToken: env.PUBLIC_STOREFRONT_API_TOKEN,
-      withPrivacyBanner: false,
+      withPrivacyBanner: true,
       // localize the privacy banner
       country: args.context.storefront.i18n.country,
       language: args.context.storefront.i18n.language,
@@ -149,6 +149,22 @@ export function Layout({children}) {
   return (
     <html lang="es">
       <head>
+        <script
+          nonce={nonce}
+          dangerouslySetInnerHTML={{
+            __html: `
+              !function(f,b,e,v,n,t,s)
+              {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+              n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+              if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+              n.queue=[];t=b.createElement(e);t.async=!0;
+              t.src=v;s=b.getElementsByTagName(e)[0];
+              s.parentNode.insertBefore(t,s)}(window,document,'script',
+              'https://connect.facebook.net/en_US/fbevents.js');
+              fbq('init', '1586370229709460');
+            `,
+          }}
+        />
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />
         <link rel="stylesheet" href={tailwindCss}></link>
@@ -175,11 +191,12 @@ export default function App() {
   }
 
   return (
-    <Analytics.Provider
+   <Analytics.Provider
       cart={data.cart}
       shop={data.shop}
       consent={data.consent}
     >
+      <MetaPixelEvents />
       <PageLayout {...data}>
         <Outlet />
       </PageLayout>
