@@ -12,7 +12,14 @@ import {IngredientsSection} from '~/components/IngredientsSection';
  * @type {Route.MetaFunction}
  */
 export const meta = () => {
-  return [{title: 'Hydrogen | Home'}];
+  return [
+    {title: 'UROPROB | Probiótico vaginal para el equilibrio íntimo'},
+    {
+      name: 'description',
+      content:
+        'Complejo Probiótico Exclusivo URO® con 5 mil millones de UFC para un olor vaginal, pH y equilibrio de levaduras saludables. Envíos nacionales en 24-48 h.',
+    },
+  ];
 };
 
 /**
