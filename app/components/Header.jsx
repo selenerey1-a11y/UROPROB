@@ -40,12 +40,12 @@ export function HeaderMenu({
   const {close} = useAside();
 
   // Drop the "Catalog" entry (there's no catalog page worth linking to yet)
-  // and add a direct link to the UROPROB product instead of a generic one.
+  // and add a direct link to the UROprob product instead of a generic one.
   const items = (menu || FALLBACK_HEADER_MENU).items
     .filter((item) => item.title?.toLowerCase() !== 'catalog')
     .concat({
       id: 'uroprob-product-link',
-      title: 'UROPROB',
+      title: 'UROprob',
       url: '/products/uroprob',
     });
 

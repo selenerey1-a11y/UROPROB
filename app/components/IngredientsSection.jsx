@@ -28,7 +28,7 @@ export function IngredientsSection() {
       <div className="ingredients-hero">
         <img
           src={ingredientsHeroImage}
-          alt="Cápsula de UROPROB abierta, mostrando el polvo probiótico"
+          alt="Cápsula de UROprob abierta, mostrando el polvo probiótico"
           className="ingredients-hero-image"
         />
       </div>

@@ -5,7 +5,7 @@ import {policyLabel} from '~/lib/policyLabels';
  * @type {Route.MetaFunction}
  */
 export const meta = ({data}) => {
-  return [{title: `UROPROB | ${data?.policy ? policyLabel(data.policy) : ''}`}];
+  return [{title: `UROprob | ${data?.policy ? policyLabel(data.policy) : ''}`}];
 };
 
 /**

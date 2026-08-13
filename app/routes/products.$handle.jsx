@@ -37,7 +37,7 @@ const TRUST_TICKER_ITEMS = [
  */
 export const meta = ({data}) => {
   return [
-    {title: `UROPROB | ${data?.product.title ?? ''}`},
+    {title: `UROprob | ${data?.product.title ?? ''}`},
     {
       rel: 'canonical',
       href: `/products/${data?.product.handle}`,

@@ -8,7 +8,7 @@ import {useVariantUrl} from '~/lib/variants';
 const ADDON_BULLETS = [
   'Pensado para complementar tu rutina diaria',
   'Fácil de combinar con URO Probiótico Vaginal',
-  'Mismo estándar de calidad UROPROB',
+  'Mismo estándar de calidad UROprob',
 ];
 
 /**

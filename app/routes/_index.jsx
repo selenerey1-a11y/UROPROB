@@ -13,7 +13,7 @@ import {IngredientsSection} from '~/components/IngredientsSection';
  */
 export const meta = () => {
   return [
-    {title: 'UROPROB | Probiótico vaginal para el equilibrio íntimo'},
+    {title: 'UROprob | Probiótico vaginal para el equilibrio íntimo'},
     {
       name: 'description',
       content:
