@@ -24,14 +24,13 @@ export function MetaPixelEvents() {
       }
     });
 
-    subscribe('product_added_to_cart', ({products}) => {
-      if (typeof window.fbq === 'function' && products?.length) {
-        const product = products[0];
+    subscribe('product_added_to_cart', ({currentLine}) => {
+      if (typeof window.fbq === 'function' && currentLine) {
         window.fbq('track', 'AddToCart', {
-          content_ids: [product.variantId || product.id],
+          content_ids: [currentLine.merchandise?.id],
           content_type: 'product',
-          value: product.price,
-          currency: 'EUR',
+          value: parseFloat(currentLine.cost?.totalAmount?.amount || 0),
+          currency: currentLine.cost?.totalAmount?.currencyCode || 'EUR',
         });
       }
     });
