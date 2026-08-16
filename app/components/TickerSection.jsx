@@ -1,4 +1,5 @@
 const TICKER_ITEMS = [
+  'Envío gratis en todos los pedidos',
   'Envíos nacionales',
   'Ofertas de Verano',
   'Envíos 24-48 h',

@@ -51,7 +51,7 @@ export function CartMain({layout, cart: originalCart}) {
       aria-label={layout === 'page' ? 'Cart page' : 'Cart drawer'}
     >
       <CartEmpty hidden={linesCount} layout={layout} />
-      {cartHasItems && <CartFreeShipping subtotal={cart?.cost?.subtotalAmount} />}
+      {cartHasItems && <CartFreeShipping />}
       <div className="cart-details">
         {cartHasItems && <h4 className="cart-details-heading">Tu carrito:</h4>}
         <p id="cart-lines" className="sr-only">

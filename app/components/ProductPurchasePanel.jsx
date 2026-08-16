@@ -146,9 +146,14 @@ export function ProductPurchasePanel({product, productOptions, selectedVariant})
         saludables.*
       </p>
 
-      <span className="purchase-sold-badge">
-        🔥 Más de <strong>10.000</strong> botes vendidos
-      </span>
+      <div className="purchase-badges">
+        <span className="purchase-sold-badge">
+          🔥 Más de <strong>10.000</strong> botes vendidos
+        </span>
+        <span className="purchase-cod-badge">
+          💵 <strong>100% contrareembolso</strong>, tu confianza nos importa
+        </span>
+      </div>
 
       <ProductOptionsSelector productOptions={otherOptions} />
 
@@ -240,6 +245,12 @@ export function ProductPurchasePanel({product, productOptions, selectedVariant})
                     : `${units} botes se envían cada mes`}
                 </li>
               </ul>
+
+              <p className="purchase-type-note">
+                💳 La suscripción solo se puede pagar con tarjeta, ya que la
+                renovación es automática cada mes. Si prefieres el
+                contrareembolso, elige <strong>Compra única</strong>.
+              </p>
             </label>
 
             <label

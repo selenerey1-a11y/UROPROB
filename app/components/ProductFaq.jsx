@@ -28,6 +28,10 @@ const TABS = [
     label: 'Envío',
     questions: [
       {
+        q: '¿Cuánto cuesta el envío?',
+        a: 'Nada: el envío es gratis en todos los pedidos, sin importe mínimo.',
+      },
+      {
         q: '¿Cuánto tarda en llegar mi pedido?',
         a: 'Los envíos nacionales suelen tardar entre 24 y 48 horas laborables desde la confirmación de la compra.',
       },
